@@ -1,13 +1,15 @@
 import React from 'react';
 import { FishingParams } from '../types';
 import { Settings2 } from 'lucide-react';
+import { SharePanel } from './SharePanel';
 
 interface ControlPanelProps {
   params: FishingParams;
   onChange: (params: FishingParams) => void;
+  onToast: (message: string, type: 'success' | 'error' | 'info') => void;
 }
 
-export const ControlPanel: React.FC<ControlPanelProps> = ({ params, onChange }) => {
+export const ControlPanel: React.FC<ControlPanelProps> = ({ params, onChange, onToast }) => {
   const handleChange = (key: keyof FishingParams, value: number) => {
     onChange({ ...params, [key]: value });
   };
@@ -92,6 +94,13 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({ params, onChange }) 
           </div>
         ))}
       </div>
+
+      {/* Share Panel */}
+      <SharePanel
+        params={params}
+        onImport={onChange}
+        onToast={onToast}
+      />
     </div>
   );
 };

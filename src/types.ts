@@ -30,3 +30,19 @@ export interface Achievement {
   unlocked: boolean;
   icon: string;
 }
+
+export interface ShareData {
+  version: string;
+  appName: string;
+  timestamp: string;
+  description?: string;
+  encrypted: boolean;
+  data: string;
+  params: FishingParams;
+}
+
+export interface ToastMessage {
+  id: number;
+  message: string;
+  type: 'success' | 'error' | 'info';
+}

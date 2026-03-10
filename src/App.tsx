@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { FishingParams, FishingState } from './types';
+import React, { useState, useEffect, useCallback } from 'react';
+import { FishingParams, FishingState, ToastMessage } from './types';
 import { calculateFishingState } from './utils/physics';
+import { parseCurrentUrl } from './utils/urlSharing';
 import { WaterTank } from './components/WaterTank';
 import { ControlPanel } from './components/ControlPanel';
 import { DetectionSystem } from './components/DetectionSystem';
 import { AchievementSystem } from './components/AchievementSystem';
+import { Toast } from './components/Toast';
 import { Activity } from 'lucide-react';
 
 export default function App() {
@@ -34,6 +36,28 @@ export default function App() {
   });
 
   const [biteEvent, setBiteEvent] = useState<{ id: number, target: 'upper' | 'lower', type: 'pull' | 'lift' } | null>(null);
+
+  const [toasts, setToasts] = useState<ToastMessage[]>([]);
+
+  const addToast = useCallback((message: string, type: 'success' | 'error' | 'info') => {
+    const id = Date.now();
+    setToasts((prev) => [...prev, { id, message, type }]);
+  }, []);
+
+  const dismissToast = useCallback((id: number) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  }, []);
+
+  // Check for shared params in URL on mount
+  useEffect(() => {
+    const sharedParams = parseCurrentUrl();
+    if (sharedParams) {
+      setParams(sharedParams);
+      addToast('已加载分享的配置', 'success');
+      // Clear the hash to clean up URL
+      window.history.replaceState(null, '', window.location.pathname);
+    }
+  }, [addToast]);
 
   const triggerBite = (target: 'upper' | 'lower', type: 'pull' | 'lift') => {
     setBiteEvent({ id: Date.now(), target, type });
@@ -102,12 +126,15 @@ export default function App() {
 
           {/* Right Column: Controls & Achievements */}
           <div className="lg:col-span-5 space-y-6">
-            <ControlPanel params={params} onChange={setParams} />
+            <ControlPanel params={params} onChange={setParams} onToast={addToast} />
             <AchievementSystem state={state} />
           </div>
 
         </div>
       </main>
+
+      {/* Toast Notifications */}
+      <Toast toasts={toasts} onDismiss={dismissToast} />
     </div>
   );
 }

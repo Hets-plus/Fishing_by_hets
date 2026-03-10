@@ -79,11 +79,11 @@ export const WaterTank: React.FC<WaterTankProps> = ({ state, params, biteEvent }
   // Scale factor to fit the water depth in the container
   const scale = 400 / params.waterDepth; // 400px is the height of the water area
 
-  // Float tail is 40px (10 meshes, 4px each)
-  // If visibleMeshes = 10, top of float is at -40px (above water)
+  // Float tail is 60px (10 meshes, 6px each)
+  // If visibleMeshes = 10, top of float is at -60px (above water)
   // If visibleMeshes = 0, top of float is at 0px (at water surface)
   // If sunk, floatTopY is positive
-  const baseFloatTopY = state.status === 'sunk' ? state.floatY * scale : -state.visibleMeshes * 4;
+  const baseFloatTopY = state.status === 'sunk' ? state.floatY * scale : -state.visibleMeshes * 6;
   
   // Constrain visual Y coordinates so elements don't clip through the bottom
   const MUD_Y = 380; // Mud starts at 380px relative to water surface
@@ -113,7 +113,8 @@ export const WaterTank: React.FC<WaterTankProps> = ({ state, params, biteEvent }
   const upperSlack = Math.max(0, (params.subLineLength - params.hookSpacing) - (state.hookY - state.leadY)) * scale;
 
   const mainLineStartX = isFloatFlat ? 45 : 80;
-  const mainLineStartY = isFloatFlat ? 0 : baseFloatTopY + 70;
+  // Adjusted connection point based on new float total length (Tail 60 + Body 40 + Pin 40 = 140)
+  const mainLineStartY = isFloatFlat ? 0 : baseFloatTopY + 140;
 
   useEffect(() => {
     if (!biteEvent) return;
@@ -200,8 +201,11 @@ export const WaterTank: React.FC<WaterTankProps> = ({ state, params, biteEvent }
   // When suspended (slack = 0), they hang straight down (0 offset).
   // When touching bottom (slack > 0), they bend to the right.
   const baseUpperX = upperSlack > 0 ? Math.min(upperSlack * 0.8, 25) : 0;
-  const baseLowerX = lowerSlack > 0 ? Math.min(lowerSlack * 0.8, 35) : 0;
   
+  // Enhanced separation logic for long sub-line: increased multiplier and max limit
+   // to ensure it is clearly distinguishable from the short sub-line when lying on bottom.
+   const baseLowerX = lowerSlack > 0 ? Math.min(lowerSlack * 1.4, 70) : 0;
+
   // When flow increases, they both converge to the flow direction
   const flowFactor = Math.min(Math.abs(flow) / 2, 1); // Max convergence at flow = 2
   
@@ -341,14 +345,48 @@ export const WaterTank: React.FC<WaterTankProps> = ({ state, params, biteEvent }
           transition={{ type: "spring", stiffness: 50, damping: 10 }}
           style={{ originX: 0.5, originY: 0.5 }}
         >
-          {/* Float Tail (Meshes) */}
+          {/* Float Tail (Meshes) - Thinner and Taller */}
           {[...Array(10)].map((_, i) => (
-            <rect key={i} x="78" y={i * 4} width="4" height="4" fill={i % 2 === 0 ? '#ef4444' : '#facc15'} />
+            <rect key={i} x="79.2" y={i * 6} width="1.6" height="5.5" fill={i % 2 === 0 ? '#ef4444' : '#22c55e'} />
           ))}
-          {/* Float Body */}
-          <rect x="74" y="40" width="12" height="20" rx="6" fill="#f97316" />
-          {/* Float Pin */}
-          <rect x="79" y="60" width="2" height="10" fill="#1f2937" />
+          
+          {/* Float Body (Smoother Jujube Shape) - Reduced Proportion */}
+          <path 
+            d="
+              M 79.2 60 
+              L 80.8 60 
+              C 84 65, 87 75, 87 80 
+              C 87 85, 84 95, 81 100 
+              L 79 100 
+              C 76 95, 73 85, 73 80 
+              C 73 75, 76 65, 79.2 60 
+              Z
+            " 
+            fill="#ffffff" 
+            stroke="#cbd5e1" 
+            strokeWidth="0.5" 
+          />
+          
+          {/* Signature */}
+          <text 
+            x="80" 
+            y="80" 
+            textAnchor="middle" 
+            dominantBaseline="middle" 
+            fontSize="5" 
+            fill="#dc2626" 
+            fontWeight="bold" 
+            transform="rotate(90, 80, 80)" 
+            style={{ pointerEvents: 'none', userSelect: 'none', letterSpacing: '0.5px' }}
+          >
+            hets
+          </text>
+          
+          {/* Float Pin (Longer & Adjusted Position) */}
+          <rect x="79" y="100" width="2" height="40" fill="#1f2937" />
+          
+          {/* Length Info */}
+          <text x="94" y="80" fontSize="8" fill="rgba(255,255,255,0.8)" style={{ pointerEvents: 'none' }}>47.5cm</text>
         </motion.g>
 
         {/* Lead & Figure 8 Ring */}

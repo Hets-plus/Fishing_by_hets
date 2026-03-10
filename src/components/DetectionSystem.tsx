@@ -1,54 +1,82 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { FishingState } from '../types';
-import { Info } from 'lucide-react';
+import { AlertTriangle, CheckCircle, HelpCircle, Anchor, ArrowDownUp } from 'lucide-react';
+import suggestions from '../suggestions.json';
+
+const statusConfig = {
+  floating: {
+    title: '浮漂躺平',
+    icon: <AlertTriangle className="w-5 h-5 text-orange-500" />,
+    color: 'orange',
+    description: '铅坠过轻或浮漂浮力过大，整个线组浮在水面。'
+  },
+  suspended: {
+    title: '双钩悬浮',
+    icon: <CheckCircle className="w-5 h-5 text-green-500" />,
+    color: 'green',
+    description: '铅坠重量与浮漂浮力达到完美平衡，双钩悬浮于水中，灵敏度最高。'
+  },
+  bottom_touch: {
+    title: '下钩触底',
+    icon: <Anchor className="w-5 h-5 text-blue-500" />,
+    color: 'blue',
+    description: '下钩触底，上钩悬浮，是钓底层鱼类的经典状态，兼顾灵敏与稳定。'
+  },
+  bottom_rest: {
+    title: '铅坠躺底',
+    icon: <HelpCircle className="w-5 h-5 text-purple-500" />,
+    color: 'purple',
+    description: '铅坠和双钩都躺在水底，非常迟钝，但能有效抗风浪和过滤小鱼信号。'
+  },
+  sunk: {
+    title: '浮漂沉没',
+    icon: <AlertTriangle className="w-5 h-5 text-red-500" />,
+    color: 'red',
+    description: '铅坠过重，浮漂被完全拉入水中，无法观察鱼讯。'
+  }
+};
 
 interface DetectionSystemProps {
   state: FishingState;
 }
 
 export const DetectionSystem: React.FC<DetectionSystemProps> = ({ state }) => {
-  const getStatusText = () => {
-    switch (state.status) {
-      case 'floating': return '浮漂平躺水面 (铅太轻或水太浅)';
-      case 'suspended': return '悬浮状态 (半水调漂)';
-      case 'bottom_touch': return '一饵触底，一饵悬浮 (灵敏)';
-      case 'bottom_rest': return '双饵躺底，铅坠悬浮 (顿口明显)';
-      case 'sunk': return '铅坠到底，浮漂没入水中 (铅太重)';
-      default: return '未知状态';
-    }
-  };
+  const config = statusConfig[state.status];
+  const [suggestion, setSuggestion] = useState({ title: '', description: '' });
 
-  const getAdvice = () => {
-    if (state.status === 'sunk') return '建议：剪铅皮或上推浮漂。';
-    if (state.status === 'floating') return '建议：加铅皮或下拉浮漂。';
-    if (state.status === 'suspended') return '建议：继续上推浮漂找底。';
-    if (state.status === 'bottom_touch') return '建议：适合钓轻口鱼，保持。';
-    if (state.status === 'bottom_rest') return '建议：适合钓滑鱼或底层鱼。';
-    return '';
-  };
+  useEffect(() => {
+    const availableSuggestions = suggestions[state.status] || [];
+    if (availableSuggestions.length > 0) {
+      const randomIndex = Math.floor(Math.random() * availableSuggestions.length);
+      setSuggestion(availableSuggestions[randomIndex]);
+    }
+  }, [state.status]);
+
+  if (!config) return null;
 
   return (
-    <div className="bg-blue-50 p-6 rounded-xl border border-blue-100">
-      <div className="flex items-center gap-2 mb-4">
-        <Info className="w-5 h-5 text-blue-600" />
-        <h2 className="text-lg font-semibold text-blue-900">状态检测</h2>
+    <div className={`bg-white p-6 rounded-2xl shadow-sm border border-gray-100`}>
+      <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+        <ArrowDownUp className="w-5 h-5 text-indigo-500" />
+        状态检测 & 智能建议
+      </h2>
+      <div className={`bg-${config.color}-50 border-l-4 border-${config.color}-400 p-4 rounded-r-lg`}>
+        <div className="flex items-center">
+          <div className="flex-shrink-0">
+            {config.icon}
+          </div>
+          <div className="ml-3">
+            <p className={`text-sm font-bold text-${config.color}-700`}>{config.title}</p>
+          </div>
+        </div>
+        <p className="mt-2 text-sm text-gray-600">{config.description}</p>
       </div>
       
-      <div className="space-y-4">
-        <div className="flex justify-between items-center p-3 bg-white rounded-lg shadow-sm">
-          <span className="text-gray-600">当前水下状态</span>
-          <span className="font-medium text-blue-700">{getStatusText()}</span>
-        </div>
-        
-        <div className="flex justify-between items-center p-3 bg-white rounded-lg shadow-sm">
-          <span className="text-gray-600">露出目数</span>
-          <span className="font-mono font-bold text-orange-500 text-xl">
-            {state.visibleMeshes} 目
-          </span>
-        </div>
-
-        <div className="p-4 bg-blue-100/50 rounded-lg text-sm text-blue-800 leading-relaxed">
-          {getAdvice()}
+      <div className="mt-4 pt-4 border-t border-gray-200/80">
+        <h3 className="text-sm font-semibold text-gray-500 mb-2">💡 hets钓鱼智能助手建议：</h3>
+        <div className="bg-gray-50 p-4 rounded-lg">
+          <p className="font-bold text-gray-800">{suggestion.title}</p>
+          <p className="mt-1 text-sm text-gray-600">{suggestion.description}</p>
         </div>
       </div>
     </div>

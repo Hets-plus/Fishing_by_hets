@@ -5,7 +5,7 @@ import { WaterTank } from './components/WaterTank';
 import { ControlPanel } from './components/ControlPanel';
 import { DetectionSystem } from './components/DetectionSystem';
 import { AchievementSystem } from './components/AchievementSystem';
-import { Droplet, Activity } from 'lucide-react';
+import { Activity } from 'lucide-react';
 
 export default function App() {
   const [params, setParams] = useState<FishingParams>({
@@ -48,8 +48,8 @@ export default function App() {
       {/* Header */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center gap-3">
-          <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-sm">
-            <Droplet className="w-6 h-6 text-white" />
+          <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center shadow-sm">
+            <img src="/pic_for_fish.png" alt="App Icon" className="w-11 h-11" />
           </div>
           <div>
             <h1 className="text-xl font-bold text-gray-900 tracking-tight">智能钓鱼调漂模拟器</h1>
